@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>TikTok ログインの結果｜ポケット庭園（ポケ庭）</title>
+  <link rel="icon" href="../../favicon.png">
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    .code-box { background: var(--parchment-pale); border: 3px solid var(--wood); border-radius: 12px; padding: 16px; margin: 16px 0; word-break: break-all; }
+    .code-box .label { font-size: 0.9rem; color: var(--ink-soft); margin: 0 0 4px; }
+    .code-box .value { font-size: 1.5rem; font-weight: bold; font-family: ui-monospace, Consolas, monospace; margin: 0 0 12px; }
+    .big-button { display: block; width: 100%; font-size: 1.4rem; padding: 14px; border: 3px solid var(--wood-dark); border-radius: 12px; background: var(--wood); color: #fff; cursor: pointer; }
+    .ok { color: var(--leaf); font-weight: bold; min-height: 1.6em; }
+    .error { color: #a33; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <header><a href="../../">← ポケット庭園（ポケ庭）</a></header>
+    <h1>TikTok ログインの結果</h1>
+    <p>開発者が自分のアカウントで 1 回だけ行うログインの結果を表示するページです。この画面の内容は外部へは送られません（端末の中だけで表示します）。</p>
+
+    <div id="result" hidden>
+      <div class="code-box">
+        <p class="label">code</p>
+        <p class="value" id="code"></p>
+        <p class="label">state</p>
+        <p class="value" id="state"></p>
+      </div>
+      <button class="big-button" id="copy" type="button">コピー</button>
+      <p class="ok" id="copied" role="status"></p>
+      <p>「コピー」を押してから、PC の黒い画面（login.py）に貼り付けて Enter を押してください。</p>
+    </div>
+    <p class="error" id="error" hidden></p>
+  </div>
+
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var code = q.get("code"), state = q.get("state") || "";
+      var err = q.get("error");
+      var result = document.getElementById("result");
+      var error = document.getElementById("error");
+      if (err || !code) {
+        error.hidden = false;
+        error.textContent = err
+          ? "ログインが完了しませんでした（" + err + (q.get("error_description") ? "：" + q.get("error_description") : "") + "）。もう一度やり直してください。"
+          : "code がありません。TikTok のログインを済ませたあとに、このページが開きます。";
+        return;
+      }
+      document.getElementById("code").textContent = code;
+      document.getElementById("state").textContent = state;
+      result.hidden = false;
+      // 履歴に code が残らないよう、アドレスから取り除く
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      var text = "code=" + encodeURIComponent(code) + "&state=" + encodeURIComponent(state);
+      document.getElementById("copy").addEventListener("click", function () {
+        var done = function () { document.getElementById("copied").textContent = "コピーしました。"; };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+        } else { fallback(text, done); }
+      });
+      function fallback(t, done) {
+        var ta = document.createElement("textarea");
+        ta.value = t; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) { document.getElementById("copied").textContent = "コピーできませんでした。上の code と state を手で選んで貼ってください。"; }
+        document.body.removeChild(ta);
+      }
+    })();
+  </script>
+</body>
+</html>
